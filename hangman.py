@@ -11,6 +11,7 @@ hangman_status = ['''
                    |
                    |
                =====
+                \n\n\n\n\n
 ''',
 '''
                +---+
@@ -20,6 +21,7 @@ hangman_status = ['''
                    |
                    |
                =====
+               \n\n\n\n\n
 ''',
 '''
                +---+
@@ -29,6 +31,7 @@ hangman_status = ['''
                    |
                    |
                =====
+               \n\n\n\n\n
 ''',
 '''
                +---+
@@ -38,6 +41,7 @@ hangman_status = ['''
                    |
                    |
                =====
+               \n\n\n\n\n
 ''',
 '''
                +---+
@@ -47,6 +51,7 @@ hangman_status = ['''
                    |
                    |
                =====
+               \n\n\n\n\n
 ''',
 '''
                +---+
@@ -56,6 +61,7 @@ hangman_status = ['''
               /    |
                    |
                =====
+               \n\n\n\n\n
 ''',
 '''
                +---+
@@ -67,6 +73,61 @@ hangman_status = ['''
                =====
 ''']
 
+introduction_message = '''\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    #####################################################
+                WELCOME              TO                 
+                            ____                          
+    |   |    /\    |\   | /      |\    /|    /\    |\   |
+    |___|   /  \   | \  | |   _  | \  / |   /  \   | \  |
+    |   |  /----\  |  \ | |    | |  \/  |  /----\  |  \ |
+    |   | /      \ |   \| \____/ |      | /      \ |   \|
+
+    #####################################################
+    \n\n\n\n\n\n\n\n'''
+
+
+incorrect_answer = '''\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+##################################################################
+                         
+                        INCORRECT ANSWER
+
+##################################################################
+\n\n\n\n\n'''
+
+correct_answer = '''\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+##################################################################
+                         
+                          CORRECT ANSWER
+
+##################################################################
+\n\n\n\n\n'''
+
+repeated_answer = '''\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+##################################################################
+                         
+              REPEATED ANSWER TRY A DIFFERENT LETTER
+
+##################################################################
+\n\n\n\n\n'''
+
+winning_message = '''\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+##################################################################
+                         
+                          YOU HAVE WON!!!
+
+##################################################################
+'''
+
+losing_message = '''\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+##################################################################
+                         
+                          YOU HAVE LOST...
+
+##################################################################
+'''
+
+
+
 animal_names = []
 food_names = []
 plant_names = []
@@ -75,96 +136,115 @@ secret_word_list = []
 blank_word_list = []
 already_guessed = []
 
+secret_word = ''
 failed_guess_count = 0
-answer = False
-game_won = False
+game_won_count = 0
+game_lost_count = 0
+
+
+def game_stats():
+    global secret_word
+    return f'''
+##################################################################
+                         
+                        GAME INFORMATION
+
+                HIDDEN WORD IS: {secret_word}
+
+                WIN TO LOSE RATIO IS: {str(game_won_count) + "/" + str(game_lost_count)}
+
+##################################################################
+'''
 
 
 def convert_list_strings(list):
     converted_list = ""
+
     for letters in list:
         converted_list += letters
 
     return converted_list
 
-def game_restart(game_status):
-    if game_status == False:
-        print("Game is restarting...")
-        
-        for seconds in range(3, 0, -1):
-                print(seconds)
-                sleep(1)
 
-        game_intialization()
+def game_restart():
 
     new_game = input("Would you like to a new game? yes or no: ")
     if new_game == 'yes':
         game_intialization()
     else:
         exit()
-    
 
-def game_finished(score):
-    global game_won
 
-    if score == False:
-        print('YOU LOST\n')
-        
-    else:
-        print('YOU WON\n')
-        game_won = True
-    
-    game_restart(score)
+def is_attempts_over(guess_count):
+    global game_lost_count
 
-def state_of_man(guess_count):
     if guess_count == 6:
-        print(hangman_status[guess_count])
-        game_finished(False)
+        game_lost_count += 1
+        print(losing_message)
+        print(game_stats())
+        print(print_hangman_status(guess_count))
+        game_restart()
+    
+
+def print_hangman_status(guess_count):
     return hangman_status[guess_count]
+    
 
-
-def verify_occurance(letter, word):
-
+def is_letter_repeated(letter, word):
     if letter in already_guessed:
-        print("\n\n\n\nYou have already guessed this")
-    elif letter in blank_word_list:
-        print("\n\n\n\nYou have already guessed this")
-    elif letter not in already_guessed:
-        pass
+        return True
     else:
-        return
+        return False
+    
 
+def is_letter_correct(letter, word):
+
+    if letter in word:
+        return True
+    else:
+        return False
+    
 
 def game_logic(letter, word):
     global failed_guess_count
-    global answer
+    
+    if is_letter_correct(letter, word) == True:
 
-    if letter not in word:
-        failed_guess_count += 1
-        already_guessed.append(letter)
-        print("\n\n\n\n\n\n\n\nIncorrect Answer.")
+        if is_letter_repeated(letter, word) == True:
+            print(repeated_answer)
+        
+        print(correct_answer)
 
-    if letter in word:
         for positions in range(len(word)):
             if letter == word[positions]:
                 blank_word_list[positions] = letter
-        
-        print("\n\n\n\n\n\n\n\nCorrect Answer")
+                
+    else:
+        if is_letter_repeated(letter, word) == True:
+            print(repeated_answer)
 
+        else:
+            failed_guess_count += 1
+            already_guessed.append(letter)
+            is_attempts_over(failed_guess_count)
+            print(incorrect_answer)
+    
     game_play(word)
 
 
 def game_play(word_list):
-    global answer
+    global game_won_count
 
     if '_' not in blank_word_list:
-        game_finished(failed_guess_count)
-
+        print(winning_message)
+        game_won_count += 1
+        print(winning_message)
+        print(game_stats())
+        game_restart()
 
     print("\n\n\n\n")
 
-
-    print(state_of_man(failed_guess_count))
+    print(print_hangman_status(failed_guess_count))
     print("Already Guessed: " + convert_list_strings(already_guessed))
 
     print("Hidden word: " + convert_list_strings(blank_word_list))
@@ -176,7 +256,6 @@ def game_play(word_list):
         print("\n\n\n\nInput a alphabetical letter...")
         game_play(word_list)
 
-    verify_occurance(letter_guessed, word_list)
     game_logic(letter_guessed, word_list)
 
 
@@ -192,13 +271,16 @@ def game_setup(secret_word):
 
     game_play(secret_word_list)
  
+
 #Establishes a random word for the hangman
 def game_intialization():
 
     global already_guessed
     global failed_guess_count
     global blank_word_list
-    
+    global secret_word
+
+    #This is only present because it fixed an issue I was having
     del already_guessed
 
     already_guessed = []
@@ -206,19 +288,11 @@ def game_intialization():
 
     failed_guess_count = 0
 
-    print("\n\n\n\n\n\n\n")
-    print("#####################################################")
-    print("             WELCOME              TO                 ")
-    print("                       ____                          ")
-    print("|   |    /\    |\   | /      |\    /|    /\    |\   |")
-    print("|___|   /  \   | \  | |   _  | \  / |   /  \   | \  |")
-    print("|   |  /----\  |  \ | |    | |  \/  |  /----\  |  \ |")
-    print("|   | /      \ |   \| \____/ |      | /      \ |   \|")
-    print()
-    print("#####################################################")
+    print(introduction_message)
 
     print("\nCategories for word choice are animals, foods, and plants")
     user_category_choice = input("Type a category from the list above:")
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
     try:
         with open(f"{user_category_choice}.txt", "r") as item:
@@ -257,4 +331,4 @@ def game_intialization():
         game_setup(secret_word)
 
 
-game_intialization()    
+game_intialization()
